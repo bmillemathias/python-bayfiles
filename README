@@ -2,7 +2,7 @@ python-bayfiles
 ===============
 
 python-bayfiles is an attempt to wrap bayfiles.com API v1 into Python.
-BayFiles is a service which provides hosting of files.
+bayfiles.com is a service which provides hosting of files.
 
 python-bayfiles relies on python-requests for HTTP transport 
 
