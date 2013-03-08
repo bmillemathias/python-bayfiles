@@ -3,7 +3,7 @@ from distutils.core import setup
 with open('README.md') as f:
     long_description = f.read()
 
-setup(name='bayfile',
+setup(name='bayfiles',
         version='0.0.1',
         description='A library to upload files to bayfiles.com',
         long_description=long_description,
