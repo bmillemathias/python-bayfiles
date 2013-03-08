@@ -14,7 +14,7 @@ setup(name='bayfile',
         license='LGPL',
         classifiers=['Development Status :: 2 - Pre-Alpha',
             'Intended Audience :: Developers',
-            'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)'
+            'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
             'Operating System :: POSIX',
             'Programming Language :: Python :: 2.7',
             'Topic :: Communications :: File Sharing',
