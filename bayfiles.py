@@ -38,10 +38,13 @@ class File(object):
         #if self.session:
         #    url += '?session={0}'.format(self.session)
         r = requests.get(url)
+
+        if not r.ok:
+            r.raise_for_status()
+
         self.metadata = r.json()
-        if r.ok and self.metadata['error'] == u'':
-            pass
-        else:
+
+        if self.metadata['error'] != u'':
             raise UploadException(self.metadata['error'])
 
     def __get_sha1hash(self):
@@ -119,7 +122,6 @@ class File(object):
 
             if not r.ok:
                 r.raise_for_status()
-            
             return r.json()
 
         except AttributeError:
