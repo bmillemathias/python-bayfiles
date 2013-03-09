@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 with open('README') as f:
     long_description = f.read()
@@ -12,7 +12,7 @@ setup(name='bayfiles',
         author_email = 'baptiste.millemathias@gmail.com',
         url = 'https://github.com/bmillemathias/python-bayfiles',
         license = 'LGPL',
-        requires = ['requests'],
+        install_requires = ['requests'],
         keywords = ('filesharing', 'upload', 'storage', 'bayfiles.com', 'http'),
         classifiers = ['Development Status :: 2 - Pre-Alpha',
             'Intended Audience :: Developers',
