@@ -4,14 +4,18 @@
 import requests
 import sys
 
+
 class BasicException(requests.ConnectionError):
     pass
+
 
 class UploadException(BasicException):
     pass
 
+
 class DeleteException(BasicException):
     pass
+
 
 class File(object):
     """
@@ -30,8 +34,9 @@ class File(object):
 
     def __register_url(self):
         """
-        This function will request an upload url to post the file you need to store 
-        and a progress url that can be polled to know the progress of the upload
+        This function will request an upload url to post the file you need to
+        store and a progress url that can be polled to know the progress of the
+        upload.
         """
 
         url = self.BASE_URL + '/file/uploadUrl'
@@ -68,13 +73,13 @@ class File(object):
         """Upload the file to bayfiles server.
 
         Keywords arguments:
-        validate -- a boolean, if set to True, it will ensure there was no 
+        validate -- a boolean, if set to True, it will ensure there was no
         corruption during the transfert by comparing the sha1 hash of the local
         file and the one computed by bayfile.
 
         """
         with open(self.filepath, 'rb') as file_fd:
-            files = {'file': file_fd }
+            files = {'file': file_fd}
             r = requests.post(self.metadata['uploadUrl'], files=files)
 
         if not r.ok:
@@ -90,13 +95,14 @@ class File(object):
         if validate:
             sha1hash = self.__get_sha1hash()
             if not self.metadata['sha1'] == sha1hash:
-                raise UploadException("The file was corrupted during the upload")
+                raise UploadException(
+                    "The file was corrupted during the upload")
 
     def delete(self):
         """Delete the download url and the file stored in bayfiles."""
         url = self.BASE_URL + '/file/delete/{0}/{1}'.format(
-                self.metadata['fileId'],
-                self.metadata['deleteToken'])
+            self.metadata['fileId'],
+            self.metadata['deleteToken'])
         try:
             r = requests.get(url)
 
@@ -116,8 +122,8 @@ class File(object):
     def info(self):
         """Return public information about the file instance."""
         url = self.BASE_URL + '/file/info/{0}/{1}'.format(
-                self.metadata['fileId'],
-                self.metadata['infoToken'])
+            self.metadata['fileId'],
+            self.metadata['infoToken'])
         try:
             r = requests.get(url)
 
@@ -130,6 +136,7 @@ class File(object):
         except:
             print sys.exc_info()[0]
             raise BaseException
+
 
 class Account(object):
     pass
