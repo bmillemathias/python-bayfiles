@@ -4,7 +4,7 @@ with open('README') as f:
     long_description = f.read()
 
 setup(name='bayfiles',
-        version = '0.0.1',
+        version = '0.0.2',
         description = 'A library to upload files to bayfiles.com',
         long_description = long_description,
         py_modules = ['bayfiles'],
