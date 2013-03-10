@@ -28,7 +28,8 @@ class File(object):
     def __init__(self, filepath, account=None):
         self.metadata = {}
         self.filepath = filepath
-        self.account = account
+        if account != None:
+            self.account = account
 
         # ask for an upload URL
         self.__register_url()
@@ -40,7 +41,7 @@ class File(object):
         """
 
         url = BASE_URL + '/file/uploadUrl'
-        if self.session:
+        if self.account.session:
             url += '?session={0}'.format(self.account.session)
         r = requests.get(url)
 
@@ -83,7 +84,6 @@ class File(object):
         with open(self.filepath, 'rb') as file_fd:
             files = {'file': file_fd }
             r = requests.post(self.metadata['uploadUrl'], files=files)
-        file_fd.close()
 
         if not r.ok:
             r.raise_for_status()
@@ -114,8 +114,11 @@ class File(object):
             json = r.json()
             if json['error'] == u'':
                 return
+            else:
+                raise DeleteException(json['error'])
         except:
-            raise DeleteException(json['error'])
+            print sys.exc_info()[0]
+            raise
 
     def info(self):
         """Return public information about the file instance."""
@@ -141,25 +144,32 @@ class Account(object):
 
     def __login(self):
         """Authenticate and receive a session identifier."""
+        url = BASE_URL + '/account/login/{0}/{1}'.format(self.username,
+                                                         self.password)
         try:
-            r = requests.get(
-                BASE_URL + '/account/login/{0}/{1}'.format(
-                    self.username, self.password))
+            r = requests.get(url)
 
             if not r.ok:
                 r.raise_for_status()
 
-            self.json = r.json
+            json = r.json()
 
-            if self.json['error'] == u'':
-                return
+            if json['error'] == u'':
+                self.session = json['session']
+            else:
+                print json['error']
+                raise BaseException
         except:
             print sys.exc_info()[0]
-            raise
+            raise BaseException
 
     def logout(self):
+        """Delete the session related to the account."""
+        url = BASE_URL + '/account/logout'
+        url += '?session={0}'.format(self.session)
+
         try:
-            r = requests.get(BASE_URL + '/account/logout')
+            r = requests.get(url)
 
             if not r.ok:
                 r.raise_for_status()
@@ -168,14 +178,57 @@ class Account(object):
             if json['error'] == u'':
                 self.session = None
                 return
+            else:
+                print json['error']
+                raise BaseException
         except:
-            raise BasicException
+            print sys.exc_info()[0]
+            raise BaseException
 
     def info(self):
-        pass
+        """Return a dictionnary with information about the account."""
+        url = BASE_URL + '/account/info'
+        url += '?session={0}'.format(self.session)
 
-    def edit(self):
+        try:
+            r = requests.get(url)
+
+            if not r.ok:
+                r.raise_for_status()
+
+            json = r.json()
+
+            if json['error'] == u'':
+                return json
+            else:
+                print json['error']
+                raise BaseException
+        except:
+            print sys.exc_info()[0]
+            raise BaseException
+
+    def edit(self, key, value):
+        """Not yet implemented"""
         pass
 
     def files(self):
-        pass
+        """Return a dictionnary with the files belonging to the account."""
+        url = BASE_URL + '/account/files'
+        url += '?session={0}'.format(self.session)
+
+        try:
+            r = requests.get(url)
+
+            if not r.ok:
+                r.raise_for_status()
+
+            json = r.json()
+
+            if json['error'] == u'':
+                return json
+            else:
+                print json['error']
+                raise BaseException
+        except:
+            print sys.exc_info()[0]
+            raise BaseException
