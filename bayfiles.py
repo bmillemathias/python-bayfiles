@@ -60,7 +60,6 @@ class File(object):
                 if not buffr:
                     break
                 SHA1.update(buffr)
-        file.close()
 
         sha1hash = SHA1.hexdigest()
         return sha1hash
@@ -78,7 +77,6 @@ class File(object):
         with open(self.filepath, 'rb') as file_fd:
             files = {'file': file_fd }
             r = requests.post(self.metadata['uploadUrl'], files=files)
-        file_fd.close()
 
         if not r.ok:
             r.raise_for_status()
