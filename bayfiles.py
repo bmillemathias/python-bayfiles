@@ -3,6 +3,9 @@
 #
 import requests
 import hashlib
+import sys
+
+BASE_URL = "http://api.bayfiles.com/v1"
 
 class BasicException(requests.ConnectionError):
     pass
@@ -15,15 +18,17 @@ class DeleteException(BasicException):
 
 class File(object):
     """
-    File instance represent
+    File instance represent the file to send to bayfiles.com.
+
+    Keywords arguments:
+    filepath -- the file to upload to bayfiles.com
+    account -- a bayfiles.Account instance
     """
 
-    BASE_URL = "http://api.bayfiles.com/v1"
-
-    def __init__(self, filepath, session=''):
+    def __init__(self, filepath, account=None):
         self.metadata = {}
         self.filepath = filepath
-        self.session = session
+        self.account = account
 
         # ask for an upload URL
         self.__register_url()
@@ -34,9 +39,9 @@ class File(object):
         and a progress url that can be polled to know the progress of the upload
         """
 
-        url = self.BASE_URL + '/file/uploadUrl'
-        #if self.session:
-        #    url += '?session={0}'.format(self.session)
+        url = BASE_URL + '/file/uploadUrl'
+        if self.session:
+            url += '?session={0}'.format(self.account.session)
         r = requests.get(url)
 
         if not r.ok:
@@ -99,7 +104,7 @@ class File(object):
         """Delete the download url and the file stored in bayfiles."""
         try:
             r = requests.get(
-                self.BASE_URL + '/file/delete/{0}/{1}'.format(
+                BASE_URL + '/file/delete/{0}/{1}'.format(
                     self.metadata['fileId'],
                     self.metadata['deleteToken']))
 
@@ -116,9 +121,9 @@ class File(object):
         """Return public information about the file instance."""
         try:
             r = requests.get(
-                    self.BASE_URL + '/file/info/{0}/{1}'.format(
-                        self.metadata['fileId'],
-                        self.metadata['infoToken']))
+                BASE_URL + '/file/info/{0}/{1}'.format(
+                    self.metadata['fileId'],
+                    self.metadata['infoToken']))
 
             if not r.ok:
                 r.raise_for_status()
@@ -128,4 +133,49 @@ class File(object):
             print "Need to use upload() before info()"
 
 class Account(object):
-    pass
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+        self.__login()
+
+    def __login(self):
+        """Authenticate and receive a session identifier."""
+        try:
+            r = requests.get(
+                BASE_URL + '/account/login/{0}/{1}'.format(
+                    self.username, self.password))
+
+            if not r.ok:
+                r.raise_for_status()
+
+            self.json = r.json
+
+            if self.json['error'] == u'':
+                return
+        except:
+            print sys.exc_info()[0]
+            raise
+
+    def logout(self):
+        try:
+            r = requests.get(BASE_URL + '/account/logout')
+
+            if not r.ok:
+                r.raise_for_status()
+
+            json = r.json()
+            if json['error'] == u'':
+                self.session = None
+                return
+        except:
+            raise BasicException
+
+    def info(self):
+        pass
+
+    def edit(self):
+        pass
+
+    def files(self):
+        pass
