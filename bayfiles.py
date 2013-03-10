@@ -2,7 +2,7 @@
 # coding:utf-8
 #
 import requests
-import hashlib
+import sys
 
 class BasicException(requests.ConnectionError):
     pass
@@ -64,7 +64,6 @@ class File(object):
         sha1hash = SHA1.hexdigest()
         return sha1hash
 
-
     def upload(self, validate=True):
         """Upload the file to bayfiles server.
 
@@ -95,11 +94,11 @@ class File(object):
 
     def delete(self):
         """Delete the download url and the file stored in bayfiles."""
+        url = self.BASE_URL + '/file/delete/{0}/{1}'.format(
+                self.metadata['fileId'],
+                self.metadata['deleteToken'])
         try:
-            r = requests.get(
-                self.BASE_URL + '/file/delete/{0}/{1}'.format(
-                    self.metadata['fileId'],
-                    self.metadata['deleteToken']))
+            r = requests.get(url)
 
             if not r.ok:
                 r.raise_for_status()
@@ -107,23 +106,30 @@ class File(object):
             json = r.json()
             if json['error'] == u'':
                 return
+            else:
+                print json['error']
+                raise DeleteException(json['error'])
         except:
-            raise DeleteException(json['error'])
+            print sys.exc_info()[0]
+            raise BaseException
 
     def info(self):
         """Return public information about the file instance."""
+        url = self.BASE_URL + '/file/info/{0}/{1}'.format(
+                self.metadata['fileId'],
+                self.metadata['infoToken'])
         try:
-            r = requests.get(
-                    self.BASE_URL + '/file/info/{0}/{1}'.format(
-                        self.metadata['fileId'],
-                        self.metadata['infoToken']))
+            r = requests.get(url)
 
             if not r.ok:
                 r.raise_for_status()
             return r.json()
 
-        except AttributeError:
+        except KeyError:
             print "Need to use upload() before info()"
+        except:
+            print sys.exc_info()[0]
+            raise BaseException
 
 class Account(object):
     pass
