@@ -7,15 +7,18 @@ import sys
 BASE_URL = "http://api.bayfiles.com/v1"
 
 
-class BasicException(requests.ConnectionError):
+class FileBasicException(requests.ConnectionError):
+    """Exception """
     pass
 
 
-class UploadException(BasicException):
+class FileUploadException(FileBasicException):
+    """Exception triggered in upload() method."""
     pass
 
 
-class DeleteException(BasicException):
+class FileDeleteException(FileBasicException):
+    """Exception triggered in delete() method."""
     pass
 
 
@@ -46,15 +49,15 @@ class File(object):
         url = BASE_URL + '/file/uploadUrl'
         if self.account and hasattr(self.account, "session"):
             url += '?session={0}'.format(self.account.session)
-        r = requests.get(url)
+        request = requests.get(url)
 
-        if not r.ok:
-            r.raise_for_status()
+        if not request.ok:
+            request.raise_for_status()
 
-        self.metadata = r.json()
+        self.metadata = request.json()
 
         if self.metadata['error'] != u'':
-            raise UploadException(self.metadata['error'])
+            raise FileUploadException(self.metadata['error'])
 
     def __get_sha1hash(self):
         """Return the sha1 hash on the entire content of the file passed."""
@@ -62,15 +65,15 @@ class File(object):
         # Don't know if it's "right" to import a module in a function
         import hashlib
 
-        SHA1 = hashlib.sha1()
-        with open(self.filepath, 'rb') as file:
+        sha1_obj = hashlib.sha1()
+        with open(self.filepath, 'rb') as file_r:
             while True:
-                buffr = file.read(0x100000)
+                buffr = file_r.read(0x100000)
                 if not buffr:
                     break
-                SHA1.update(buffr)
+                sha1_obj.update(buffr)
 
-        sha1hash = SHA1.hexdigest()
+        sha1hash = sha1_obj.hexdigest()
         return sha1hash
 
     def upload(self, validate=True):
@@ -84,22 +87,22 @@ class File(object):
         """
         with open(self.filepath, 'rb') as file_fd:
             files = {'file': file_fd}
-            r = requests.post(self.metadata['uploadUrl'], files=files)
+            request = requests.post(self.metadata['uploadUrl'], files=files)
 
-        if not r.ok:
-            r.raise_for_status()
+        if not request.ok:
+            request.raise_for_status()
 
-        json = r.json()
+        json = request.json()
         if json['error'] == '':
             self.metadata.update(json)
         else:
-            raise UploadException(json['error'])
+            raise FileUploadException(json['error'])
 
         # If we ask the sha1 hash validation
         if validate:
             sha1hash = self.__get_sha1hash()
             if not self.metadata['sha1'] == sha1hash:
-                raise UploadException(
+                raise FileUploadException(
                     "The file was corrupted during the upload")
 
     def delete(self):
@@ -108,18 +111,18 @@ class File(object):
             '/file/delete/{0}/{1}'.format(self.metadata['fileId'],
                                           self.metadata['deleteToken'])
         try:
-            r = requests.get(url)
+            request = requests.get(url)
 
-            if not r.ok:
-                r.raise_for_status()
+            if not request.ok:
+                request.raise_for_status()
 
-            json = r.json()
+            json = request.json()
             if json['error'] == u'':
                 return
             else:
-                raise DeleteException(json['error'])
+                raise FileDeleteException(json['error'])
         except:
-            raise DeleteException(sys.exc_info()[0])
+            raise FileDeleteException(sys.exc_info()[0])
 
     def info(self):
         """Return public information about the file instance."""
@@ -127,18 +130,24 @@ class File(object):
             '/file/info/{0}/{1}'.format(self.metadata['fileId'],
                                         self.metadata['infoToken'])
         try:
-            r = requests.get(url)
+            request = requests.get(url)
 
-            if not r.ok:
-                r.raise_for_status()
-            return r.json()
+            if not request.ok:
+                request.raise_for_status()
+            return request.json()
 
         except AttributeError:
             print "Need to use upload() before info()"
 
 
 class Account(object):
+    """
+    Represent an account on the site bayfiles.com.
 
+    Keywords arguments:
+    username -- a string which is the username of the account
+    password -- a string which is the password of the account
+    """
     def __init__(self, username, password):
         self.username = username
         self.password = password
@@ -149,12 +158,12 @@ class Account(object):
         url = BASE_URL + '/account/login/{0}/{1}'.format(self.username,
                                                          self.password)
         try:
-            r = requests.get(url)
+            request = requests.get(url)
 
-            if not r.ok:
-                r.raise_for_status()
+            if not request.ok:
+                request.raise_for_status()
 
-            json = r.json()
+            json = request.json()
 
             if json['error'] == u'':
                 self.session = json['session']
@@ -164,17 +173,17 @@ class Account(object):
             raise Exception(sys.exc_info()[0])
 
     def logout(self):
-        """Delete the session related to the account."""
+        """Delete the session related to the account on bayfiles.com."""
         url = BASE_URL + '/account/logout'
         url += '?session={0}'.format(self.session)
 
         try:
-            r = requests.get(url)
+            request = requests.get(url)
 
-            if not r.ok:
-                r.raise_for_status()
+            if not request.ok:
+                request.raise_for_status()
 
-            json = r.json()
+            json = request.json()
             if json['error'] == u'':
                 self.session = None
                 return
@@ -189,12 +198,12 @@ class Account(object):
         url += '?session={0}'.format(self.session)
 
         try:
-            r = requests.get(url)
+            request = requests.get(url)
 
-            if not r.ok:
-                r.raise_for_status()
+            if not request.ok:
+                request.raise_for_status()
 
-            json = r.json()
+            json = request.json()
 
             if json['error'] == u'':
                 return json
@@ -213,12 +222,12 @@ class Account(object):
         url += '?session={0}'.format(self.session)
 
         try:
-            r = requests.get(url)
+            request = requests.get(url)
 
-            if not r.ok:
-                r.raise_for_status()
+            if not request.ok:
+                request.raise_for_status()
 
-            json = r.json()
+            json = request.json()
 
             if json['error'] == u'':
                 return json
