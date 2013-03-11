@@ -4,7 +4,7 @@ with open('README') as f:
     long_description = f.read()
 
 setup(name='bayfiles',
-        version = '0.0.2',
+        version = '0.0.3',
         description = 'A library to upload files to bayfiles.com',
         long_description = long_description,
         py_modules = ['bayfiles'],
@@ -12,7 +12,7 @@ setup(name='bayfiles',
         author_email = 'baptiste.millemathias@gmail.com',
         url = 'https://github.com/bmillemathias/python-bayfiles',
         license = 'LGPL',
-        install_requires = ['requests'],
+        install_requires = ['requests >= 1.0.0'],
         keywords = ('filesharing', 'upload', 'storage', 'bayfiles.com', 'http'),
         classifiers = ['Development Status :: 2 - Pre-Alpha',
             'Intended Audience :: Developers',
