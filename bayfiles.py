@@ -4,6 +4,7 @@
 import requests
 import sys
 
+BASE_URL = "http://api.bayfiles.com/v1"
 
 class BasicException(requests.ConnectionError):
     pass
@@ -19,15 +20,17 @@ class DeleteException(BasicException):
 
 class File(object):
     """
-    File instance represent
+    File instance represents the file to send to bayfiles.com.
+
+    Keywords arguments:
+    filepath -- the file to upload to bayfiles.com
+    account -- a bayfiles.Account instance
     """
 
-    BASE_URL = "http://api.bayfiles.com/v1"
-
-    def __init__(self, filepath, session=''):
+    def __init__(self, filepath, account=None):
         self.metadata = {}
         self.filepath = filepath
-        self.session = session
+        self.account = account
 
         # ask for an upload URL
         self.__register_url()
@@ -39,9 +42,9 @@ class File(object):
         upload.
         """
 
-        url = self.BASE_URL + '/file/uploadUrl'
-        #if self.session:
-        #    url += '?session={0}'.format(self.session)
+        url = BASE_URL + '/file/uploadUrl'
+        if self.account and hasattr(self.account, "session"):
+            url += '?session={0}'.format(self.account.session)
         r = requests.get(url)
 
         if not r.ok:
@@ -100,8 +103,7 @@ class File(object):
 
     def delete(self):
         """Delete the download url and the file stored in bayfiles."""
-        url = self.BASE_URL + '/file/delete/{0}/{1}'.format(
-            self.metadata['fileId'],
+        url = BASE_URL + '/file/delete/{0}/{1}'.format(self.metadata['fileId'],
             self.metadata['deleteToken'])
         try:
             r = requests.get(url)
@@ -113,16 +115,13 @@ class File(object):
             if json['error'] == u'':
                 return
             else:
-                print json['error']
                 raise DeleteException(json['error'])
         except:
-            print sys.exc_info()[0]
-            raise BaseException
+            raise DeleteException(sys.exc_info()[0])
 
     def info(self):
         """Return public information about the file instance."""
-        url = self.BASE_URL + '/file/info/{0}/{1}'.format(
-            self.metadata['fileId'],
+        url = BASE_URL + '/file/info/{0}/{1}'.format(self.metadata['fileId'],
             self.metadata['infoToken'])
         try:
             r = requests.get(url)
@@ -131,12 +130,96 @@ class File(object):
                 r.raise_for_status()
             return r.json()
 
-        except KeyError:
+        except AttributeError:
             print "Need to use upload() before info()"
-        except:
-            print sys.exc_info()[0]
-            raise BaseException
 
 
 class Account(object):
-    pass
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+        self.__login()
+
+    def __login(self):
+        """Authenticate and receive a session identifier."""
+        url = BASE_URL + '/account/login/{0}/{1}'.format(self.username,
+                                                         self.password)
+        try:
+            r = requests.get(url)
+
+            if not r.ok:
+                r.raise_for_status()
+
+            json = r.json()
+
+            if json['error'] == u'':
+                self.session = json['session']
+            else:
+                raise Exception(json['error'])
+        except:
+            raise Exception(sys.exc_info()[0])
+
+    def logout(self):
+        """Delete the session related to the account."""
+        url = BASE_URL + '/account/logout'
+        url += '?session={0}'.format(self.session)
+
+        try:
+            r = requests.get(url)
+
+            if not r.ok:
+                r.raise_for_status()
+
+            json = r.json()
+            if json['error'] == u'':
+                self.session = None
+                return
+            else:
+                raise Exception(json['error'])
+        except:
+            raise Exception(sys.exc_info()[0])
+
+    def info(self):
+        """Return a dictionnary with information about the account."""
+        url = BASE_URL + '/account/info'
+        url += '?session={0}'.format(self.session)
+
+        try:
+            r = requests.get(url)
+
+            if not r.ok:
+                r.raise_for_status()
+
+            json = r.json()
+
+            if json['error'] == u'':
+                return json
+            else:
+                raise Exception(json['error'])
+        except:
+            raise Exception(sys.exc_info()[0])
+
+    def edit(self, key, value):
+        """Not yet implemented"""
+        raise NotImplementedError
+
+    def files(self):
+        """Return a dictionnary with the files belonging to the account."""
+        url = BASE_URL + '/account/files'
+        url += '?session={0}'.format(self.session)
+
+        try:
+            r = requests.get(url)
+
+            if not r.ok:
+                r.raise_for_status()
+
+            json = r.json()
+
+            if json['error'] == u'':
+                return json
+            else:
+                raise Exception(json['error'])
+        except:
+            raise Exception(sys.exc_info()[0])
