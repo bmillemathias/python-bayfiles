@@ -27,8 +27,7 @@ class File(object):
     def __init__(self, filepath, account=None):
         self.metadata = {}
         self.filepath = filepath
-        if account != None:
-            self.account = account
+        self.account = account
 
         # ask for an upload URL
         self.__register_url()
@@ -40,7 +39,7 @@ class File(object):
         """
 
         url = BASE_URL + '/file/uploadUrl'
-        if self.account.session:
+        if self.account and hasattr(self.account, "session"):
             url += '?session={0}'.format(self.account.session)
         r = requests.get(url)
 
@@ -99,9 +98,8 @@ class File(object):
 
     def delete(self):
         """Delete the download url and the file stored in bayfiles."""
-        url = self.BASE_URL + '/file/delete/{0}/{1}'.format(
-                self.metadata['fileId'],
-                self.metadata['deleteToken'])
+        url = BASE_URL + '/file/delete/{0}/{1}'.format(self.metadata['fileId'],
+            self.metadata['deleteToken'])
         try:
             r = requests.get(url)
 
@@ -114,14 +112,12 @@ class File(object):
             else:
                 raise DeleteException(json['error'])
         except:
-            print sys.exc_info()[0]
-            raise BaseException
+            raise DeleteException(sys.exc_info()[0])
 
     def info(self):
         """Return public information about the file instance."""
-        url = self.BASE_URL + '/file/info/{0}/{1}'.format(
-                self.metadata['fileId'],
-                self.metadata['infoToken'])
+        url = BASE_URL + '/file/info/{0}/{1}'.format(self.metadata['fileId'],
+            self.metadata['infoToken'])
         try:
             r = requests.get(url)
 
@@ -129,11 +125,8 @@ class File(object):
                 r.raise_for_status()
             return r.json()
 
-        except KeyError:
+        except AttributeError:
             print "Need to use upload() before info()"
-        except:
-            print sys.exc_info()[0]
-            raise BaseException
 
 class Account(object):
 
@@ -157,11 +150,9 @@ class Account(object):
             if json['error'] == u'':
                 self.session = json['session']
             else:
-                print json['error']
-                raise BaseException
+                raise Exception(json['error'])
         except:
-            print sys.exc_info()[0]
-            raise BaseException
+            raise Exception(sys.exc_info()[0])
 
     def logout(self):
         """Delete the session related to the account."""
@@ -179,11 +170,9 @@ class Account(object):
                 self.session = None
                 return
             else:
-                print json['error']
-                raise BaseException
+                raise Exception(json['error'])
         except:
-            print sys.exc_info()[0]
-            raise BaseException
+            raise Exception(sys.exc_info()[0])
 
     def info(self):
         """Return a dictionnary with information about the account."""
@@ -201,15 +190,13 @@ class Account(object):
             if json['error'] == u'':
                 return json
             else:
-                print json['error']
-                raise BaseException
+                raise Exception(json['error'])
         except:
-            print sys.exc_info()[0]
-            raise BaseException
+            raise Exception(sys.exc_info()[0])
 
     def edit(self, key, value):
         """Not yet implemented"""
-        pass
+        raise NotImplementedError
 
     def files(self):
         """Return a dictionnary with the files belonging to the account."""
@@ -227,8 +214,6 @@ class Account(object):
             if json['error'] == u'':
                 return json
             else:
-                print json['error']
-                raise BaseException
+                raise Exception(json['error'])
         except:
-            print sys.exc_info()[0]
-            raise BaseException
+            raise Exception(sys.exc_info()[0])
