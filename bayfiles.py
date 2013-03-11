@@ -104,9 +104,9 @@ class File(object):
 
     def delete(self):
         """Delete the download url and the file stored in bayfiles."""
-        url = BASE_URL +
-        '/file/delete/{0}/{1}'.format(self.metadata['fileId'],
-                                      self.metadata['deleteToken'])
+        url = BASE_URL +\
+            '/file/delete/{0}/{1}'.format(self.metadata['fileId'],
+                                          self.metadata['deleteToken'])
         try:
             r = requests.get(url)
 
@@ -123,9 +123,9 @@ class File(object):
 
     def info(self):
         """Return public information about the file instance."""
-        url = BASE_URL +
-        '/file/info/{0}/{1}'.format(self.metadata['fileId'],
-                                    self.metadata['infoToken'])
+        url = BASE_URL +\
+            '/file/info/{0}/{1}'.format(self.metadata['fileId'],
+                                        self.metadata['infoToken'])
         try:
             r = requests.get(url)
 
