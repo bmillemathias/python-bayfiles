@@ -83,6 +83,8 @@ class File(object):
         corruption during the transfert by comparing the sha1 hash of the local
         file and the one computed by bayfile.
 
+        Should an error arise an exception FileUploadException is raised.
+
         """
         with open(self.filepath, 'rb') as file_fd:
             files = {'file': file_fd}
@@ -125,18 +127,19 @@ class File(object):
 
     def info(self):
         """Return public information about the file instance."""
-        url = BASE_URL +\
-            '/file/info/{0}/{1}'.format(self.metadata['fileId'],
-                                        self.metadata['infoToken'])
         try:
+            url = BASE_URL +\
+                '/file/info/{0}/{1}'.format(self.metadata['fileId'],
+                                            self.metadata['infoToken'])
+
             request = requests.get(url)
 
             if not request.ok:
                 request.raise_for_status()
             return request.json()
 
-        except AttributeError:
-            print "Need to use upload() before info()"
+        except KeyError:
+            print "Need to call upload() before info()"
 
 
 class Account(object):
@@ -212,8 +215,28 @@ class Account(object):
             raise Exception(sys.exc_info()[0])
 
     def edit(self, key, value):
-        """Not yet implemented"""
-        raise NotImplementedError
+        """Replace value from a key with a new value.
+
+        Keywords arguments:
+        key -- a string, the key to update the value of
+        value -- a string, the new value for the key
+        """
+        url = BASE_URL + '/account/edit/{0}/{1}'.format(key, value)
+        url += '?session={0}'.format(self.session)
+        try:
+            request = requests.get(url)
+
+            if not request.ok:
+                request.raise_for_status()
+
+            json = request.json()
+
+            if json['error'] == u'':
+                return json
+            else:
+                raise Exception(json['error'])
+        except:
+            raise Exception(sys.exc_info()[0])
 
     def files(self):
         """Return a dictionnary with the files belonging to the account."""
