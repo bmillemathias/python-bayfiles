@@ -3,6 +3,7 @@ import sys
 import unittest
 import hashlib
 
+# Add parent to sys path to be able to import bayfiles
 sys.path.append('..')
 
 import bayfiles
@@ -11,9 +12,6 @@ class TestFile(unittest.TestCase):
 
     def __get_sha1hash(self, filepath):
         """Return the sha1 hash on the entire content of the file passed."""
-
-        # Don't know if it's "right" to import a module in a function
-        import hashlib
 
         sha1_obj = hashlib.sha1()
         with open(filepath, 'rb') as file_r:
@@ -26,11 +24,19 @@ class TestFile(unittest.TestCase):
         sha1hash = sha1_obj.hexdigest()
         return sha1hash
 
-    def test_sha1(self):
+    def test_anon_upload(self):
+        """Test the anonymous upload."""
         sha1hash = self.__get_sha1hash(os.path.realpath(__file__))
         f = bayfiles.File(os.path.realpath(__file__))
         f.upload()
-        self.assertEqual(sha1hash.__str__,f.metadata[u'sha1'])
+        self.assertEqual(sha1hash,f.metadata[u'sha1'])
+
+    def test_fail_auth_account(self):
+        """test a fail authentication."""
+        import exceptions
+
+        arguments = {'username': 'testaccount', 'password':'testpassword'}
+        self.assertRaises(exceptions.Exception, bayfiles.Account, arguments)
 
 
 if __name__ == '__main__':
