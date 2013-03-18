@@ -2,6 +2,7 @@ import os
 import sys
 import unittest
 import hashlib
+import exceptions
 
 # Add parent to sys path to be able to import bayfiles
 sys.path.append('..')
@@ -31,12 +32,9 @@ class TestFile(unittest.TestCase):
         f.upload()
         self.assertEqual(sha1hash,f.metadata[u'sha1'])
 
-    def test_fail_auth_account(self):
-        """test a fail authentication."""
-        import exceptions
-
-        arguments = {'username': 'testaccount', 'password':'testpassword'}
-        self.assertRaises(exceptions.Exception, bayfiles.Account, arguments)
+    def test_account_missing_args(self):
+        """test an exception is raised if no arguments are passed."""
+        self.assertRaises(exceptions.Exception, bayfiles.Account)
 
 
 if __name__ == '__main__':
