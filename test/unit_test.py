@@ -1,8 +1,8 @@
 import os
 import sys
-import unittest
 import hashlib
 import exceptions
+import unittest
 
 # Add parent to sys path to be able to import bayfiles
 sys.path.append('..')
@@ -24,6 +24,10 @@ class TestFile(unittest.TestCase):
 
         sha1hash = sha1_obj.hexdigest()
         return sha1hash
+
+    def test_non_existing_file(self):
+        """Test an exception is raised if the file doesn't not exist."""
+        self.assertRaises(exceptions.Exception, bayfiles.File, 'not_existing_file')
 
     def test_anon_upload(self):
         """Test the anonymous upload."""
