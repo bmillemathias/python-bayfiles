@@ -2,6 +2,7 @@
 #
 import requests
 import sys
+import os
 
 BASE_URL = "http://api.bayfiles.com/v1"
 
@@ -34,6 +35,9 @@ class File(object):
         self.metadata = {}
         self.filepath = filepath
         self.account = account
+
+        if not os.path.isfile(self.filepath):
+            raise Exception('%s is not a file' % (self.filepath))
 
         # ask for an upload URL
         self.__register_url()
