@@ -112,10 +112,11 @@ class File(object):
 
     def delete(self):
         """Delete the download url and the file stored in bayfiles."""
-        url = BASE_URL +\
-            '/file/delete/{0}/{1}'.format(self.metadata['fileId'],
-                                          self.metadata['deleteToken'])
         try:
+            url = BASE_URL +\
+                '/file/delete/{0}/{1}'.format(self.metadata['fileId'],
+                                            self.metadata['deleteToken'])
+
             request = requests.get(url)
 
             if not request.ok:
