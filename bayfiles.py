@@ -8,7 +8,7 @@ BASE_URL = "http://api.bayfiles.com/v1"
 
 
 class FileBasicException(requests.ConnectionError):
-    """Exception """
+    """Exception"""
     pass
 
 
