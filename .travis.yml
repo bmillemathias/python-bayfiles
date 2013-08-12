@@ -3,6 +3,9 @@ python:
   - "2.6"
   - "2.7"
   - "3.2"
-  - "3.2"
-
-install: "pip install -r requirements.txt --use-mirrors"
+# install dependencies
+install:
+  - "pip install -r requirements.txt --use-mirrors"
+  - "python setup.py install"
+# command to run tests
+script: nosetests
